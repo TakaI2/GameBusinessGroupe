@@ -316,7 +316,7 @@ class GameEntity(object):
 
     def process(self, time_passed):  #時間が進む間常に実行
 
-
+        #目標地点から自分の位置までの距離を計算
         self.disty = self.dey - self.y
         self.distx = self.dex - self.x
 
@@ -592,7 +592,7 @@ class Player(GameEntity):
 
         
 # キャラクタを作る為の枠組み
-class Witch(GameEntity):
+class Enemy(GameEntity):
 
     def __init__(self,world,name, pos, dirl, action):
 
@@ -620,7 +620,7 @@ class Patroll(State):
 
         # Stateを初期化するために基本クラスのコンストラクタを呼び出す
         State.__init__(self, "patroll")
-        # このStateが変更されるアリを設定する
+        # このStateが変更されるenemyを設定する
         self.enemy = enemy
 
     def do_actions(self):
@@ -635,7 +635,7 @@ class Patroll(State):
 
 
 
-        player = self.enemy.world.get_close_entity("Arisa",self.enemy.x, self.enemy.y)
+        player = self.enemy.world.get_close_entity("Player",self.enemy.x, self.enemy.y)
         if player is not None:                             
             self.enemy.player_id = player.id
 
@@ -668,7 +668,7 @@ class Return(State):
 
         # Stateを初期化するために基本クラスのコンストラクタを呼び出す
         State.__init__(self, "return")
-        # このStateが変更されるアリを設定する
+        # このStateが変更されるenemyを設定する
         self.enemy = enemy
 
     def do_actions(self):
@@ -687,7 +687,7 @@ class Return(State):
 
     def entry_actions(self):
 
-        print str(self.enemy.name) + str(self.enemy.id) + ':' + '食糧が尽きたぞ'
+        print str(self.enemy.name) + str(self.enemy.id) + ':' + '敵を見失った'
 
 
     def exit_actions(self):
@@ -808,7 +808,7 @@ class TITLE(State):
         self.world = World()
 
         self.screen = pygame.display.set_mode(SCR_RECT.size) #画面を描画する
-        pygame.display.set_caption(u"PyRPG 07 testbase") #ディスプレイのキャプションをセット
+        pygame.display.set_caption(u"testbase") #ディスプレイのキャプションをセット
 
 
     def do_actions(self):
@@ -816,7 +816,7 @@ class TITLE(State):
 
         self.world.render(self.screen, (0,0) , 2)
 
-        print "Logical Light"
+        print "Title"
 
 
     def check_conditions(self):
@@ -861,7 +861,7 @@ class FIELD(State):
         time_passed = self.clock.tick(60)
 
         self.world.process(time_passed)
-        offset = calc_offset(self.arisa)
+        offset = calc_offset(self.prisoner)
         self.world.render(self.screen, offset, 1)
     
 
@@ -869,10 +869,10 @@ class FIELD(State):
 
         pressed_keys = pygame.key.get_pressed()
 
-        if self.arisa.x >= 26 and self.arisa.y == 1 :
+        if self.prisoner.x >= 26 and self.prisoner.y == 1 :
             return "win"
 
-        elif self.arisa.alive == False:
+        elif self.prisoner.alive == False:
             return "lose"
 
         else:
@@ -881,18 +881,18 @@ class FIELD(State):
 
     def entry_actions(self):
 
-        self.arisa = Player(self.world,"Arisa",(2,2),DOWN, 0) #Playerクラスからエンティティ'Arisa'を派生
-        self.bot1 = Witch(self.world,"Girl", (8,2), DOWN, 0)  #Witchクラスからエンティティ"Rose"を派生
-        self.bot2 = Witch(self.world,"Girl", (15,10), LEFT, 0)
+        self.prisoner = Player(self.world,"Player",(2,2),DOWN, 0) #Playerクラスからエンティティ'Arisa'を派生
+        self.bot1 = Enemy(self.world,"Enemy", (8,2), DOWN, 0)  #Witchクラスからエンティティ"Rose"を派生
+        self.bot2 = Enemy(self.world,"Enemy", (15,10), LEFT, 0)
         self.bot1.brain.set_state("patroll")
         self.bot2.brain.set_state("patroll")
 
-        self.world.add_entity(self.arisa)
+        self.world.add_entity(self.prisoner)
         self.world.add_entity(self.bot1)
         self.world.add_entity(self.bot2)
 
         self.screen = pygame.display.set_mode(SCR_RECT.size) #画面を描画する
-        pygame.display.set_caption(u"PyRPG 07 testbase") #ディスプレイのキャプションをセット
+        pygame.display.set_caption(u"testbase") #ディスプレイのキャプションをセット
 
 
 
@@ -911,7 +911,7 @@ class FIELD(State):
 
     def exit_actions(self):
 
-        self.arisa.alive = True
+        self.prisoner.alive = True
 
         #エンティティを全てリセットする処理を作る。
 
@@ -994,21 +994,15 @@ class LOSE(State):
 
 
 
-
-#ここから、Arisa(Player)のステート
-
-
-
-
 def run():
 
     pygame.init()  #pygameをイニシャライズ
 
     screen = pygame.display.set_mode(SCR_RECT.size) #画面を描画する
-    pygame.display.set_caption(u"PyRPG 07 testbase") #ディスプレイのキャプションをセット
+    pygame.display.set_caption(u"testbase") #ディスプレイのキャプションをセット
     # load a characterImage
-    Player.images["Arisa"] = split_image(load_image("prisoner.png"))
-    Witch.images["Girl"] = split_image(load_image("GURD_BOT.png")) #RoseDot2.bmpを分割し、GameEntityから派生したWitchの中のイメージの辞書に格納する。それをcharacterクラスの辞書imagesに"Rose"という名前で保存
+    Player.images["Player"] = split_image(load_image("prisoner.png"))
+    Enemy.images["Enemy"] = split_image(load_image("GURD_BOT.png")) #RoseDot2.bmpを分割し、GameEntityから派生したWitchの中のイメージの辞書に格納する。それをcharacterクラスの辞書imagesに"Rose"という名前で保存
     # load a map tip
     World.images[0] = load_image("plate.png")  # 地形用のイメージを読み込む
     World.images[1] = load_image("block.png")  # 壁のイメージを読み込む
@@ -1022,10 +1016,7 @@ def run():
 
     clock = pygame.time.Clock()
 
-
-    #全ての兵士のエンティティを追加
-
-    
+ 
 
     while True:
 
